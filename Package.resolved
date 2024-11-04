@@ -6,8 +6,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Wei18/github-rest-api-swift-openapi",
       "state" : {
-        "revision" : "756cbf81f22c18ac382438ceccbede452a35dba8",
-        "version" : "2.0.2"
+        "revision" : "a4d1f6082baf6942e0d0184f0758d3294c8db496",
+        "version" : "2.0.3"
       }
     },
     {
