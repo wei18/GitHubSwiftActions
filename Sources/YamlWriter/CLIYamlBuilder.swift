@@ -85,7 +85,7 @@ private struct SetUpActionFactory {
                 "name": "Setup Swift",
                 "uses": "swift-actions/setup-swift@v2",
                 "with": [
-                    "swift-version": "5.10.0",
+                    "swift-version": 5,
                 ],
             ],
             [
