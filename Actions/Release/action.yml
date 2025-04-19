@@ -23,7 +23,7 @@ runs:
   - name: Setup Swift
     uses: swift-actions/setup-swift@v2
     with:
-      swift-version: 6
+      swift-version: 5
   - name: Create Mintfile
     run: echo Wei18/GitHubSwiftActions@${{ inputs.action_ref }} > Mintfile
     shell: bash
