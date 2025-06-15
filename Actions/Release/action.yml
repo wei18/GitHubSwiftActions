@@ -41,6 +41,6 @@ runs:
       TOKEN: ${{ inputs.token }}
       TYPE: ${{ inputs.type }}
     name: Run Release
-    run: ~/.mint/bin/mint run Wei18/GitHubSwiftActions Release
+    run: ~/.mint/bin/mint run Wei18/GitHubSwiftActions@${{ inputs.action_ref }} Release
     shell: bash
   using: composite
