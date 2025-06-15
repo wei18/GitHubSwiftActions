@@ -17,8 +17,6 @@ package struct AuthenticationMiddleware: ClientMiddleware {
     package init(token: String) {
         self.token = token
     }
-    
-    private var header: [String: String] { ["Authorization": "Bearer \(token)" ] }
 
     package func intercept(
         _ request: HTTPRequest,

@@ -44,7 +44,7 @@ package struct CommentUseCase {
     ///   - body: The body content of the comment.
     package init(token: String, owner: String, repo: String, number: Int, anchor: String, body: String) throws {
         self.client = Client(
-            serverURL: try Servers.server1(),
+            serverURL: try Servers.Server1.url(),
             transport: URLSessionTransport(),
             middlewares: [AuthenticationMiddleware(token: token)]
         )
@@ -72,20 +72,20 @@ package struct CommentUseCase {
         let newBody = "\(hidingContent)\(body)"
 
         // Fetch all comments for the issue or pull request.
-        let comments = try await client.issues_sol_list_hyphen_comments(
-            path: .init(owner: owner, repo: repo, issue_number: number)
+        let comments = try await client.issuesListComments(
+            path: .init(owner: owner, repo: repo, issueNumber: number)
         ).ok.body.json
 
         // Try to find an existing comment with the hidden anchor content.
         if let comment = comments.first(where: { $0.body?.contains(hidingContent) == true }) {
-            _ = try await client.issues_sol_update_hyphen_comment(
-                path: .init(owner: owner, repo: repo, comment_id: Components.Parameters.comment_hyphen_id(comment.id)),
+            _ = try await client.issuesUpdateComment(
+                path: .init(owner: owner, repo: repo, commentId: Components.Parameters.CommentId(comment.id)),
                 body: .json(.init(body: newBody))
             ).ok
             print("Update the existing comment with the new body content.")
         } else {
-            _ = try await client.issues_sol_create_hyphen_comment(
-                path: .init(owner: owner, repo: repo, issue_number: number),
+            _ = try await client.issuesCreateComment(
+                path: .init(owner: owner, repo: repo, issueNumber: number),
                 body: .json(.init(body: newBody))
             ).created
             print("Create a new comment which no existing comment with the anchor is found.")
