@@ -57,8 +57,7 @@ struct CLIYamlBuilder {
                         "env": envDict,
                         "shell": "bash",
                     ],
-                ] +
-                factory.buildPostSteps()
+                ]
             ],
         ]
 
@@ -90,29 +89,20 @@ private struct SetUpActionFactory {
             ],
             [
                 "name": "Create Mintfile",
-                "run": "echo \(content) > Mintfile",
+                "run": "echo \(content) > ${{ github.action_path }}/Mintfile",
                 "shell": "bash",
             ],
             [
                 "name": "Setup Mint",
                 "uses": "irgaly/setup-mint@v1",
                 "with": [
+                    "mint-directory": "${{ github.action_path }}",
                     "mint-executable-directory": "~/.mint/bin",
-                    "cache-prefix": "GitHubSwiftActions",
+                    "cache-prefix": "${{ github.action }}",
                 ],
             ],
         ]
         return action
     }
 
-    func buildPostSteps() -> [[String: Any]] {
-        let action: [[String: Any]] = [
-            [
-                "name": "Create Mintfile",
-                "run": "rm Mintfile",
-                "shell": "bash",
-            ],
-        ]
-        return action
-    }
 }

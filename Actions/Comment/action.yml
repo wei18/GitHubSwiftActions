@@ -28,12 +28,13 @@ runs:
     with:
       swift-version: 5
   - name: Create Mintfile
-    run: echo Wei18/GitHubSwiftActions@${{ inputs.action_ref }} > Mintfile
+    run: echo Wei18/GitHubSwiftActions@${{ inputs.action_ref }} > ${{ github.action_path }}/Mintfile
     shell: bash
   - name: Setup Mint
     uses: irgaly/setup-mint@v1
     with:
-      cache-prefix: GitHubSwiftActions
+      cache-prefix: ${{ github.action }}
+      mint-directory: ${{ github.action_path }}
       mint-executable-directory: ~/.mint/bin
   - env:
       ACTION_REF: ${{ inputs.action_ref }}
@@ -45,8 +46,5 @@ runs:
       TOKEN: ${{ inputs.token }}
     name: Run Comment
     run: ~/.mint/bin/mint run Wei18/GitHubSwiftActions Comment
-    shell: bash
-  - name: Create Mintfile
-    run: rm Mintfile
     shell: bash
   using: composite
