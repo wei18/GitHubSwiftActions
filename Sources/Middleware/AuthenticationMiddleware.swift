@@ -26,7 +26,7 @@ package struct AuthenticationMiddleware: ClientMiddleware {
         next: @Sendable (HTTPRequest, HTTPBody?, URL) async throws -> (HTTPResponse, HTTPBody?)
     ) async throws -> (HTTPResponse, HTTPBody?) {
         var request = request
-        request.headerFields.append(HTTPField(name: .authorization, value: "Bearer \(token)"))
+        request.headerFields.append(HTTPField(name: .authorization, value: "token \(token)"))
         return try await next(request, body, baseURL)
     }
 
