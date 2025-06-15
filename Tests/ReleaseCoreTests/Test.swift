@@ -17,16 +17,18 @@ import ReleaseCore
     let ref = "main"
 
     @Test func runReleaseCore() async throws {
-        let token = try #require(ProcessInfo.processInfo.environment["GITHUB_TOKEN"])
-        let useCase = try ReposUseCase(
-            token: token,
-            owner: owner,
-            repo: repo
-        )
-        try await useCase.createRelease(
-            type: type,
-            gitRef: ref)
-        print("Release successfully created!")
+        try Task.synchronous {
+            let token = try #require(ProcessInfo.processInfo.environment["GITHUB_TOKEN"])
+            let useCase = try ReposUseCase(
+                token: token,
+                owner: owner,
+                repo: repo
+            )
+            try await useCase.createRelease(
+                type: type,
+                gitRef: ref)
+            print("Release successfully created!")
+        }
     }
 
 }

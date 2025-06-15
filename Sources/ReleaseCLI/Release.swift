@@ -34,7 +34,7 @@ package struct Release: ParsableCommand {
     package init() {}
     /// Runs the command, creating or updating the comment on the GitHub issue or pull request.
     package func run() throws {
-        Task.synchronous {
+        try Task.synchronous {
             do {
                 let owner = ProcessInfo.processInfo.environment["OWNER"] ?? owner
                 print("inputs.owner: \(owner)")

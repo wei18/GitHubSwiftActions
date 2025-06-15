@@ -8,17 +8,25 @@
 import Foundation
 
 package extension Task where Failure == Error {
-    /// Performs an async task in a sync context.
+    /// Performs an async task in a sync context and returns the result.
     ///
-    /// - Note: This function blocks the thread until the given operation is finished. The caller is responsible for managing multithreading.
-    static func synchronous(priority: TaskPriority? = nil, operation: @escaping @Sendable () async throws -> Success) {
+    /// - Warning: This blocks the current thread. Avoid calling this on the main thread.
+    @discardableResult
+    static func synchronous(priority: TaskPriority? = nil, operation: @escaping @Sendable () async throws -> Success) throws -> Success {
         let semaphore = DispatchSemaphore(value: 0)
+        var result: Result<Success, Error>!
 
-        Task(priority: priority) {
+        Task<Void, Never>(priority: priority) {
             defer { semaphore.signal() }
-            return try await operation()
+            do {
+                let value = try await operation()
+                result = .success(value)
+            } catch {
+                result = .failure(error)
+            }
         }
 
         semaphore.wait()
+        return try result.get()
     }
 }
