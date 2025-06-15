@@ -30,7 +30,7 @@ package struct ReposUseCase {
     ///   - repo: The name of the repository.
     package init(token: String, owner: String, repo: String) throws {
         self.client = Client(
-            serverURL: try Servers.server1(),
+            serverURL: try Servers.Server1.url(),
             transport: URLSessionTransport(),
             middlewares: [AuthenticationMiddleware(token: token)]
         )
@@ -39,20 +39,20 @@ package struct ReposUseCase {
     }
 
     package func createRelease(type: BumpVersionType, gitRef: String) async throws {
-        let tag = try await client.repos_sol_list_hyphen_releases(
+        let tag = try await client.reposListReleases(
             path: .init(owner: owner, repo: repo)
-        ).ok.body.json.first?.tag_name ?? "0.0.0"
+        ).ok.body.json.first?.tagName ?? "0.0.0"
 
         var version = try Version(tag)
         version.bump(type: type)
 
-        _ = try await client.repos_sol_create_hyphen_release(
+        _ = try await client.reposCreateRelease(
             path: .init(owner: owner, repo: repo),
             body: .json(
                 .init(
-                    tag_name: version.string,
-                    target_commitish: gitRef,
-                    generate_release_notes: true
+                    tagName: version.string,
+                    targetCommitish: gitRef,
+                    generateReleaseNotes: true
                 )
             )
         ).created
