@@ -15,7 +15,7 @@ jobs:
         os:
           - ubuntu-latest
           # - macos-latest
-        swift: ["6"]
+        swift: [6]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -23,7 +23,7 @@ jobs:
         with:
           mise_toml: |
             [tools]
-            swift = ${{ matrix.swift }}
+            swift = "${{ matrix.swift }}"
       - run: |
           swift build
           swift test
