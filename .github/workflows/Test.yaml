@@ -24,6 +24,8 @@ jobs:
           mise_toml: |
             [tools]
             swift = "${{ matrix.swift }}"
+            [settings]
+            experimental = true
       - run: |
           swift build
           swift test
