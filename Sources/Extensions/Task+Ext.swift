@@ -13,18 +13,15 @@ package extension Task where Failure == Error {
     /// - Warning: This blocks the current thread. Avoid calling this on the main thread.
     static func synchronous(priority: TaskPriority? = nil, operation: @escaping @Sendable () async throws -> Success) throws {
         let semaphore = DispatchSemaphore(value: 0)
-        var captured: Error?
         Task<Void, Never>(priority: priority) {
             defer { semaphore.signal() }
             do {
                 _ = try await operation()
             } catch {
-                captured = error
+                // FIXME: to context's error
+                print(error)
             }
         }
         semaphore.wait()
-        if let captured {
-            throw captured
-        }
     }
 }
