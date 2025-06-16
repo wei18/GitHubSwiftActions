@@ -38,10 +38,14 @@ package struct ReposUseCase {
         self.repo = repo
     }
 
-    package func createRelease(type: BumpVersionType, gitRef: String) async throws {
-        let tag = try await client.reposListReleases(
+    package func getLatestTag() async throws -> String {
+        return try await client.reposListReleases(
             path: .init(owner: owner, repo: repo)
         ).ok.body.json.first?.tagName ?? "0.0.0"
+    }
+
+    package func createRelease(type: BumpVersionType, gitRef: String) async throws {
+        let tag = try await getLatestTag()
         print("Get current tag(\(tag)) from reposListReleases")
 
         var version = try Version(tag)
