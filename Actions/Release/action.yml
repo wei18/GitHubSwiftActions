@@ -21,9 +21,9 @@ name: Release
 runs:
   steps:
   - name: Setup Swift
-    uses: swift-actions/setup-swift@v2
+    uses: jdx/mise-action@v2
     with:
-      swift-version: 5
+      mise_toml: '[tools]\nswift = "5"\n[settings]\nexperimental = true\n'
   - name: Create Mintfile
     run: echo Wei18/GitHubSwiftActions@${{ inputs.action_ref }} > ${{ github.action_path }}/Mintfile
     shell: bash

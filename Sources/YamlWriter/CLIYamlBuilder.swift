@@ -82,9 +82,9 @@ private struct SetUpActionFactory {
         let action: [[String: Any]] = [
             [
                 "name": "Setup Swift",
-                "uses": "swift-actions/setup-swift@v2",
+                "uses": "jdx/mise-action@v2",
                 "with": [
-                    "swift-version": 5,
+                    "mise_toml": #"[tools]\nswift = "5"\n[settings]\nexperimental = true\n"#,
                 ],
             ],
             [
