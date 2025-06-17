@@ -26,7 +26,11 @@ runs:
   - name: Setup Swift
     uses: jdx/mise-action@v2
     with:
-      mise_toml: '[tools]\nswift = "5"\n[settings]\nexperimental = true\n'
+      mise_toml: |-
+        [tools]
+        swift = "5"
+        [settings]
+        experimental = true
   - name: Create Mintfile
     run: echo Wei18/GitHubSwiftActions@${{ inputs.action_ref }} > ${{ github.action_path }}/Mintfile
     shell: bash

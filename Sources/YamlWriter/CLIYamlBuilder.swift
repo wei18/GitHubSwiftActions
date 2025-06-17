@@ -79,12 +79,19 @@ private struct SetUpActionFactory {
 
     func buildSteps() -> [[String: Any]] {
         let content = "\(SwiftPackageConfig.current.repo)@${{ inputs.action_ref }}"
+        let miseToml = #"""
+            [tools]
+            swift = "5"
+            [settings]
+            experimental = true
+            """#
+
         let action: [[String: Any]] = [
             [
                 "name": "Setup Swift",
                 "uses": "jdx/mise-action@v2",
                 "with": [
-                    "mise_toml": #"[tools]\nswift = "5"\n[settings]\nexperimental = true\n"#,
+                    "mise_toml": Yams.Node.scalar(.init(miseToml, .implicit, .literal)),
                 ],
             ],
             [
