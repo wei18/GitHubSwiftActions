@@ -26,6 +26,8 @@ jobs:
             swift = "${{ matrix.swift }}"
             [settings]
             experimental = true
-      - run: |
+      - env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
           swift build
           swift test

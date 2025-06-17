@@ -23,7 +23,7 @@ import ReleaseCore
             owner: owner,
             repo: repo
         )
-        try await useCase.getLatestTag()
+        _ = try await useCase.getLatestTag()
     }
 
 }
