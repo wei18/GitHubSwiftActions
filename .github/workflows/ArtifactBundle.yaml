@@ -46,11 +46,12 @@ jobs:
     # Ubuntu's libcurl, which is built without websocket support).
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         ref: ${{ needs.resolve-tag.outputs.tag }}
-    # The toolchain version must exactly match the Static Linux SDK version.
-    - uses: jdx/mise-action@v2
+    # The toolchain version must exactly match the Static Linux SDK version,
+    # so it is pinned rather than tracking the latest 6.x.
+    - uses: jdx/mise-action@v4
       with:
         mise_toml: |
           [tools]
