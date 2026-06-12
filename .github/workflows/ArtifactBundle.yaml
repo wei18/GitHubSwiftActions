@@ -36,22 +36,32 @@ jobs:
     strategy:
       matrix:
         include:
-        - os: ubuntu-24.04
-          triple: x86_64-unknown-linux-gnu
-        - os: ubuntu-24.04-arm
-          triple: aarch64-unknown-linux-gnu
-    runs-on: ${{ matrix.os }}
+        - triple: x86_64-unknown-linux-gnu
+          swift-sdk: x86_64-swift-linux-musl
+        - triple: aarch64-unknown-linux-gnu
+          swift-sdk: aarch64-swift-linux-musl
+    # Both targets cross-compile from x86_64 via the Static Linux SDK (musl),
+    # which produces fully static binaries with no runtime dependency on the
+    # host's Swift or libcurl (--static-swift-stdlib fails to link against
+    # Ubuntu's libcurl, which is built without websocket support).
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
       with:
         ref: ${{ needs.resolve-tag.outputs.tag }}
+    # The toolchain version must exactly match the Static Linux SDK version.
+    - uses: jdx/mise-action@v2
+      with:
+        mise_toml: |
+          [tools]
+          swift = "6.3.2"
+    - name: Install Static Linux SDK
+      run: swift sdk install https://download.swift.org/swift-6.3.2-release/static-sdk/swift-6.3.2-RELEASE/swift-6.3.2-RELEASE_static-linux-0.1.0.artifactbundle.tar.gz --checksum 3fd798bef6f4408f1ea5a6f94ce4d4052830c4326ab85ebc04f983f01b3da407
     - name: Build static binaries
       run: |
-        swift build -c release --static-swift-stdlib --product Release
-        swift build -c release --static-swift-stdlib --product Comment
-        # .build/release is a symlink; copy from the real bin path so
-        # upload-artifact picks up regular files.
-        bin="$(swift build -c release --show-bin-path)"
+        swift build -c release --swift-sdk ${{ matrix.swift-sdk }} --product Release
+        swift build -c release --swift-sdk ${{ matrix.swift-sdk }} --product Comment
+        bin="$(swift build -c release --swift-sdk ${{ matrix.swift-sdk }} --show-bin-path)"
         mkdir -p dist
         cp "$bin/Release" "$bin/Comment" dist/
     - uses: actions/upload-artifact@v4
@@ -86,16 +96,16 @@ jobs:
               "type": "executable",
               "version": "$TAG",
               "variants": [
-                { "path": "x86_64-unknown-linux-gnu/Release", "supportedTriples": ["x86_64-unknown-linux-gnu"] },
-                { "path": "aarch64-unknown-linux-gnu/Release", "supportedTriples": ["aarch64-unknown-linux-gnu"] }
+                { "path": "x86_64-unknown-linux-gnu/Release", "supportedTriples": ["x86_64-unknown-linux-gnu", "x86_64-swift-linux-musl"] },
+                { "path": "aarch64-unknown-linux-gnu/Release", "supportedTriples": ["aarch64-unknown-linux-gnu", "aarch64-swift-linux-musl"] }
               ]
             },
             "Comment": {
               "type": "executable",
               "version": "$TAG",
               "variants": [
-                { "path": "x86_64-unknown-linux-gnu/Comment", "supportedTriples": ["x86_64-unknown-linux-gnu"] },
-                { "path": "aarch64-unknown-linux-gnu/Comment", "supportedTriples": ["aarch64-unknown-linux-gnu"] }
+                { "path": "x86_64-unknown-linux-gnu/Comment", "supportedTriples": ["x86_64-unknown-linux-gnu", "x86_64-swift-linux-musl"] },
+                { "path": "aarch64-unknown-linux-gnu/Comment", "supportedTriples": ["aarch64-unknown-linux-gnu", "aarch64-swift-linux-musl"] }
               ]
             }
           }
