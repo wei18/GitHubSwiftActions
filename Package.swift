@@ -13,7 +13,7 @@ let package = Package(
         .executable(name: "Release", targets: ["Release"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/Wei18/github-rest-api-swift-openapi", from: "3.0.0"),
+        .package(url: "https://github.com/Wei18/github-rest-api-swift-openapi", from: "3.0.12"),
         .package(url: "https://github.com/apple/swift-argument-parser", from: "1.0.0"),
         .package(url: "https://github.com/apple/swift-openapi-runtime", from: "1.0.0"),
         .package(url: "https://github.com/jpsim/Yams", from: "6.0.0"),

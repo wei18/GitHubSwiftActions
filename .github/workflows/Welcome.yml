@@ -11,8 +11,16 @@ jobs:
       pull-requests: write
       issues: write
     steps:
+    # The mise spm backend resolves refs/tags/<ref> only, so action_ref must be
+    # a release tag (with an artifact bundle attached) rather than "main".
+    - name: Resolve latest release tag
+      id: latest
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: echo "tag=$(gh release view --repo ${{ github.repository }} --json tagName --jq .tagName)" >> "$GITHUB_OUTPUT"
     - uses: Wei18/GitHubSwiftActions/Actions/Comment@main
       with:
+        action_ref: ${{ steps.latest.outputs.tag }}
         number: ${{ github.event.issue.number }}
         body: |
           Hello @${{ github.event.issue.user.login }},

@@ -35,9 +35,14 @@ struct CLIYamlBuilder {
         let factory = SetUpActionFactory()
         inputs.merge(factory.buildInputs()) { _, new in new }
 
-        let envDict = inputs.keys.reduce(into: [:]) { partialResult, value in
+        var envDict = inputs.keys.reduce(into: [String: String]()) { partialResult, value in
             partialResult[value.uppercased()] = "${{ inputs.\(value) }}"
         }
+        // mise queries the GitHub releases API to resolve the artifact bundle;
+        // unauthenticated requests hit rate limits on shared runner IPs.
+        envDict["GITHUB_TOKEN"] = "${{ inputs.token }}"
+        // The mise spm backend is gated behind the experimental flag.
+        envDict["MISE_EXPERIMENTAL"] = "1"
 
         let name = String(describing: command)
         let repo = SwiftPackageConfig.current.repo
@@ -53,7 +58,7 @@ struct CLIYamlBuilder {
                 [
                     [
                         "name": "Run \(name)",
-                        "run": "~/.mint/bin/mint run \(repo)@${{ inputs.action_ref }} \(name)",
+                        "run": "mise x \"spm:\(repo)@${{ inputs.action_ref }}\" -- \(name)",
                         "env": envDict,
                         "shell": "bash",
                     ],
@@ -78,35 +83,13 @@ private struct SetUpActionFactory {
     }
 
     func buildSteps() -> [[String: Any]] {
-        let content = "\(SwiftPackageConfig.current.repo)@${{ inputs.action_ref }}"
-        let miseToml = #"""
-            [tools]
-            swift = "5"
-            [settings]
-            experimental = true
-            """#
-
+        // The spm backend only needs `swift -print-target-info` to match the
+        // artifact bundle triple; GitHub-hosted runners ship with Swift, so no
+        // toolchain install step is required.
         let action: [[String: Any]] = [
             [
-                "name": "Setup Swift",
+                "name": "Setup Mise",
                 "uses": "jdx/mise-action@v2",
-                "with": [
-                    "mise_toml": Yams.Node.scalar(.init(miseToml, .implicit, .literal)),
-                ],
-            ],
-            [
-                "name": "Create Mintfile",
-                "run": "echo \(content) > ${{ github.action_path }}/Mintfile",
-                "shell": "bash",
-            ],
-            [
-                "name": "Setup Mint",
-                "uses": "irgaly/setup-mint@v1",
-                "with": [
-                    "mint-directory": "${{ github.action_path }}",
-                    "mint-executable-directory": "~/.mint/bin",
-                    "cache-prefix": "${{ github.action }}",
-                ],
             ],
         ]
         return action
