@@ -38,13 +38,22 @@ jobs:
         include:
         - os: ubuntu-24.04
           triple: x86_64-unknown-linux-gnu
+          swift: 6
         - os: ubuntu-24.04-arm
           triple: aarch64-unknown-linux-gnu
+          swift: 6
     runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         ref: ${{ needs.resolve-tag.outputs.tag }}
+    - uses: jdx/mise-action@v4
+      with:
+        mise_toml: |
+          [tools]
+          swift = "${{ matrix.swift }}"
+          [settings]
+          experimental = true
     - name: Build static binaries
       run: |
         swift build -c release --static-swift-stdlib --product Release
