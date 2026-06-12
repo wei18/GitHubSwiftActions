@@ -1,0 +1,108 @@
+name: ArtifactBundle
+
+on:
+  workflow_run:
+    workflows: [Release]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to build the artifact bundle for (defaults to the latest release)
+        required: false
+        default: ""
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+
+  resolve-tag:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+    steps:
+    - id: tag
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        INPUT_TAG: ${{ inputs.tag }}
+      run: |
+        tag="${INPUT_TAG:-$(gh release view --repo ${{ github.repository }} --json tagName --jq .tagName)}"
+        echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+  build-binaries:
+    needs: resolve-tag
+    strategy:
+      matrix:
+        include:
+        - os: ubuntu-24.04
+          triple: x86_64-unknown-linux-gnu
+        - os: ubuntu-24.04-arm
+          triple: aarch64-unknown-linux-gnu
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        ref: ${{ needs.resolve-tag.outputs.tag }}
+    - name: Build static binaries
+      run: |
+        swift build -c release --static-swift-stdlib --product Release
+        swift build -c release --static-swift-stdlib --product Comment
+        # .build/release is a symlink; copy from the real bin path so
+        # upload-artifact picks up regular files.
+        bin="$(swift build -c release --show-bin-path)"
+        mkdir -p dist
+        cp "$bin/Release" "$bin/Comment" dist/
+    - uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.triple }}
+        path: dist
+        if-no-files-found: error
+
+  upload-artifact-bundle:
+    needs: [resolve-tag, build-binaries]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      TAG: ${{ needs.resolve-tag.outputs.tag }}
+    steps:
+    - uses: actions/download-artifact@v4
+      with:
+        path: bins
+    - name: Assemble artifact bundle
+      run: |
+        bundle=GitHubSwiftActions.artifactbundle
+        for triple in x86_64-unknown-linux-gnu aarch64-unknown-linux-gnu; do
+          mkdir -p "$bundle/$triple"
+          cp "bins/$triple/Release" "bins/$triple/Comment" "$bundle/$triple/"
+        done
+        cat > "$bundle/info.json" << EOF
+        {
+          "schemaVersion": "1.0",
+          "artifacts": {
+            "Release": {
+              "type": "executable",
+              "version": "$TAG",
+              "variants": [
+                { "path": "x86_64-unknown-linux-gnu/Release", "supportedTriples": ["x86_64-unknown-linux-gnu"] },
+                { "path": "aarch64-unknown-linux-gnu/Release", "supportedTriples": ["aarch64-unknown-linux-gnu"] }
+              ]
+            },
+            "Comment": {
+              "type": "executable",
+              "version": "$TAG",
+              "variants": [
+                { "path": "x86_64-unknown-linux-gnu/Comment", "supportedTriples": ["x86_64-unknown-linux-gnu"] },
+                { "path": "aarch64-unknown-linux-gnu/Comment", "supportedTriples": ["aarch64-unknown-linux-gnu"] }
+              ]
+            }
+          }
+        }
+        EOF
+        zip -r "$bundle.zip" "$bundle"
+    - name: Upload to release
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: gh release upload "$TAG" GitHubSwiftActions.artifactbundle.zip --repo ${{ github.repository }} --clobber

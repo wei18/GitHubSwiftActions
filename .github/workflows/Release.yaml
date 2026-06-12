@@ -14,8 +14,16 @@ jobs:
     permissions:
       contents: write
     steps:
+    # The mise spm backend resolves refs/tags/<ref> only, so action_ref must be
+    # a release tag (with an artifact bundle attached) rather than "main".
+    - name: Resolve latest release tag
+      id: latest
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: echo "tag=$(gh release view --repo ${{ github.repository }} --json tagName --jq .tagName)" >> "$GITHUB_OUTPUT"
     - uses: Wei18/GitHubSwiftActions/Actions/Release@main
       with:
+        action_ref: ${{ steps.latest.outputs.tag }}
         owner: ${{ github.repository_owner }}
         repo: ${{ github.event.repository.name }}
         token: ${{ secrets.GITHUB_TOKEN }}
