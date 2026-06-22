@@ -46,7 +46,7 @@ jobs:
     # Ubuntu's libcurl, which is built without websocket support).
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       with:
         ref: ${{ needs.resolve-tag.outputs.tag }}
     # The toolchain version must exactly match the Static Linux SDK version,
